@@ -19,3 +19,4 @@ DO NOT USE IN PRODUCTION.
 2. Naive receiver
 3. Truster
 4. Side entrance
+5. The rewarder
