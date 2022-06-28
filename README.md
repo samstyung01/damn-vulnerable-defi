@@ -20,3 +20,4 @@ DO NOT USE IN PRODUCTION.
 3. Truster
 4. Side entrance
 5. The rewarder
+6. Selfie
