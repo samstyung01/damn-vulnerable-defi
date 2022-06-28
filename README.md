@@ -14,6 +14,5 @@ All Solidity code, practices and patterns in this repository are DAMN VULNERABLE
 
 DO NOT USE IN PRODUCTION.
 
-## Disclaimer
-Challenges reloved:
+## Challenges Resolved
 1. Unstoppable
