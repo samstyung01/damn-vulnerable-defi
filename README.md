@@ -21,3 +21,4 @@ DO NOT USE IN PRODUCTION.
 4. Side entrance
 5. The rewarder
 6. Selfie
+7. Compromised
