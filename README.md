@@ -23,3 +23,4 @@ DO NOT USE IN PRODUCTION.
 6. Selfie
 7. Compromised
 8. Puppet
+9. Puppet v2

